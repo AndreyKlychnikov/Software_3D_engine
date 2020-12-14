@@ -9,11 +9,10 @@ def any_func(arr, a, b):
 
 
 class Object3D:
-    def __init__(self, render, vertexes='', faces=''):
+    def __init__(self, render, vertexes, faces):
         self.render = render
-        self.vertexes = np.array([np.array(v) for v in vertexes])
-        self.faces = np.array([np.array(face) for face in faces])
-        self.translate([0.0001, 0.0001, 0.0001])
+        self.vertexes = vertexes
+        self.faces = faces
 
         self.font = pg.font.SysFont('Arial', 30, bold=True)
         self.color_faces = [(pg.Color('orange'), face) for face in self.faces]
@@ -22,7 +21,7 @@ class Object3D:
 
     def draw(self):
         self.screen_projection()
-        self.movement()
+        # self.movement()
 
     def movement(self):
         if self.movement_flag:
@@ -53,7 +52,7 @@ class Object3D:
     def translate(self, pos):
         self.vertexes = self.vertexes @ translate(pos)
 
-    def scale(self, scale_to):
+    def scale(self, scale_to: float):
         self.vertexes = self.vertexes @ scale(scale_to)
 
     def rotate_x(self, angle):
@@ -65,12 +64,46 @@ class Object3D:
     def rotate_z(self, angle):
         self.vertexes = self.vertexes @ rotate_z(angle)
 
+    def control(self):
+        key = pg.key.get_pressed()
+        base_delta = 0.1
+        if key[pg.K_a]:
+            self.translate(np.array([-base_delta, 0, 0]))
+        if key[pg.K_d]:
+            self.translate(np.array([base_delta, 0, 0]))
+        if key[pg.K_w]:
+            self.translate(np.array([0, base_delta, 0]))
+        if key[pg.K_s]:
+            self.translate(np.array([0, -base_delta, 0]))
+        if key[pg.K_q]:
+            self.translate(np.array([0, 0, base_delta]))
+        if key[pg.K_e]:
+            self.translate(np.array([0, 0, -base_delta]))
+
+        base_angle = math.pi / 180
+
+        modded = pg.key.get_mods()
+        if modded:
+            base_angle *= -1
+
+        if key[pg.K_x]:
+            self.rotate_x(base_angle)
+        if key[pg.K_z]:
+            self.rotate_z(base_angle)
+        if key[pg.K_y]:
+            self.rotate_y(base_angle)
+
+        if key[pg.K_EQUALS]:
+            self.scale(1.01)
+        if key[pg.K_MINUS]:
+            self.scale(0.99)
+
 
 class Axes(Object3D):
     def __init__(self, render):
-        super().__init__(render)
-        self.vertexes = np.array([(0, 0, 0, 1), (1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1)])
-        self.faces = np.array([(0, 1), (0, 2), (0, 3)])
+        super().__init__(render,
+                         vertexes=np.array([(0, 0, 0, 1), (1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1)]),
+                         faces=np.array([(0, 1), (0, 2), (0, 3)]))
         self.colors = [pg.Color('red'), pg.Color('green'), pg.Color('blue')]
         self.color_faces = [(color, face) for color, face in zip(self.colors, self.faces)]
         self.draw_vertexes = False
